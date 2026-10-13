@@ -1,0 +1,71 @@
+rules_version = '2';
+
+service firebase.storage {
+  match /b/{bucket}/o {
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    function isFleetAdmin() {
+      return isSignedIn()
+        && (
+          firestore.get(
+            /databases/(default)/documents/users/$(request.auth.uid)
+          ).data.isAdmin == true
+          || firestore.get(
+            /databases/(default)/documents/users/$(request.auth.uid)
+          ).data.role == 'admin'
+        );
+    }
+
+    function ownsUserFolder(userId) {
+      return isSignedIn() && request.auth.uid == userId;
+    }
+
+    function canManageTripDocuments(userId) {
+      return isFleetAdmin() || ownsUserFolder(userId);
+    }
+
+    function isAllowedTripFile() {
+      return request.resource.size <= 5 * 1024 * 1024
+        && request.resource.contentType.matches(
+          'application/pdf|image/(jpeg|png|webp)|application/msword|application/vnd.openxmlformats-officedocument.wordprocessingml.document|application/vnd.ms-excel|application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+        );
+    }
+
+    match /fleet-vehicles/{allPaths=**} {
+      allow read: if true;
+      allow write: if isFleetAdmin();
+    }
+
+    match /client_images/{allPaths=**} {
+      allow read: if true;
+      allow write: if isFleetAdmin();
+    }
+
+    match /service_images/{allPaths=**} {
+      allow read: if true;
+      allow write: if isFleetAdmin();
+    }
+
+    match /trip-documents/{userId}/{allPaths=**} {
+      allow read: if true;
+      allow create, update: if canManageTripDocuments(userId)
+        && isAllowedTripFile();
+      allow delete: if canManageTripDocuments(userId);
+    }
+
+    match /issue-attachments/{userId}/{allPaths=**} {
+      allow read: if isSignedIn();
+      allow create: if canManageTripDocuments(userId)
+        && request.resource.size <= 5 * 1024 * 1024
+        && request.resource.contentType.matches('image/(jpeg|png|webp|gif)');
+      allow delete: if canManageTripDocuments(userId);
+      allow update: if false;
+    }
+
+    match /{allPaths=**} {
+      allow read, write: if false;
+    }
+  }
+}
