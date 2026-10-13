@@ -45,7 +45,7 @@ export default function IssuesPage({ onSignOut }: IssuesPageProps) {
   }, []);
 
   useEffect(() => {
-    if (!auth.currentUser) return;
+    if (!auth?.currentUser) return;
     setLoading(true);
     setError("");
     const unsubscribe = subscribeToIssues(

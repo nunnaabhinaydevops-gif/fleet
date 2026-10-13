@@ -3,7 +3,7 @@ import fs from "fs";
 
 admin.initializeApp({
   credential: admin.credential.cert("./serviceAccountKey.json"),
-});
+});q
 
 const db = admin.firestore();
 

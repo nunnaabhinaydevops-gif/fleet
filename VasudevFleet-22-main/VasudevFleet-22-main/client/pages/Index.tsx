@@ -2,14 +2,17 @@ import { type CSSProperties, type ReactNode, useEffect, useMemo, useRef, useStat
 import { importLibrary, setOptions } from "@googlemaps/js-api-loader";
 import { useNavigate } from "react-router-dom";
 import { auth, getCurrentUserProfile, subscribeToEnquiryNotifications, subscribeToIssues, type IssueRecord, type ManagedEnquiry, type UserProfile } from "@/firebase";
+import { extractFleetxVehicles, fetchFleetxRealtime, readFleetxValue, type FleetxVehicle } from "@/lib/fleetx";
 import {
   AlertCircle,
   BriefcaseBusiness,
   Check,
   ChevronDown,
+  CircleGauge,
   ClipboardList,
   BarChart3,
   Clock3,
+  Download,
   ExternalLink,
   Fuel,
   Grid2X2,
@@ -56,6 +59,8 @@ type Vehicle = {
   since: string;
   x: number;
   y: number;
+  latitude?: number;
+  longitude?: number;
 };
 
 const DEFAULT_VEHICLE_PANEL_WIDTH = 480;
@@ -74,8 +79,8 @@ const vehicleStatusColors: Record<VehicleStatus, string> = {
 };
 
 const vehiclePosition = (vehicle: Vehicle) => ({
-  lat: 17.35 + (100 - vehicle.y) * 0.007,
-  lng: 82.88 + vehicle.x * 0.006,
+  lat: vehicle.latitude ?? 17.35 + (100 - vehicle.y) * 0.007,
+  lng: vehicle.longitude ?? 82.88 + vehicle.x * 0.006,
 });
 
 function vehicleMarkerIcon(vehicle: Vehicle, selected: boolean): google.maps.Icon {
@@ -114,7 +119,7 @@ let cachedProfileUserId: string | null = null;
 let cachedUserProfile: UserProfile | undefined;
 
 function getCachedUserProfile() {
-  const userId = auth.currentUser?.uid;
+  const userId = auth?.currentUser?.uid;
   return userId && userId === cachedProfileUserId ? cachedUserProfile : undefined;
 }
 
@@ -263,6 +268,42 @@ const vehicles: Vehicle[] = Array.from({ length: 39 }, (_, index) => {
   };
 });
 
+function asNumber(value: unknown, fallback: number) {
+  const parsed = typeof value === "number" ? value : Number(value);
+  return Number.isFinite(parsed) ? parsed : fallback;
+}
+
+function normalizeFleetxVehicle(item: FleetxVehicle, index: number): Vehicle {
+  const plate = String(readFleetxValue(item, "vehicleNumber", "registrationNumber", "vehicleNo", "number", "plate") ?? `LIVE-${index + 1}`);
+  const latitude = asNumber(readFleetxValue(item, "latitude", "lat", "locationLatitude", "gpsLatitude"), Number.NaN);
+  const longitude = asNumber(readFleetxValue(item, "longitude", "lng", "locationLongitude", "gpsLongitude"), Number.NaN);
+  const rawStatus = String(readFleetxValue(item, "status", "vehicleStatus", "movementStatus", "tripStatus") ?? "").toLowerCase();
+  const moving = readFleetxValue(item, "isMoving", "moving") === true || rawStatus.includes("running") || rawStatus.includes("moving") || rawStatus.includes("on road");
+  const status: VehicleStatus = rawStatus.includes("late") ? "late" : rawStatus.includes("job") || rawStatus.includes("trip") ? "on-job" : rawStatus.includes("idle") || rawStatus.includes("parked") ? "not-on-job" : moving ? "running" : "not-on-job";
+  const fuelPercent = Math.max(0, Math.min(100, asNumber(readFleetxValue(item, "fuelPercent", "fuelPercentage", "fuelLevelPercentage"), 0)));
+  const x = Number.isFinite(longitude) ? (longitude - 82.88) / 0.006 : 50;
+  const y = Number.isFinite(latitude) ? 100 - (latitude - 17.35) / 0.007 : 50;
+  return {
+    id: String(readFleetxValue(item, "vehicleId", "id", "vehicleName") ?? plate),
+    plate,
+    group: String(readFleetxValue(item, "groupName", "group", "vehicleGroup") ?? "LIVE FLEET"),
+    driver: String(readFleetxValue(item, "driverName", "driver", "driver_name") ?? "Unassigned"),
+    insurance: Boolean(readFleetxValue(item, "insurance", "insuranceValid")),
+    status,
+    fuel: String(readFleetxValue(item, "fuel", "fuelLevel", "fuelVolume") ?? `${fuelPercent}%`),
+    fuelPercent,
+    duration: String(readFleetxValue(item, "duration", "runningDuration") ?? "-"),
+    distance: String(readFleetxValue(item, "distance", "distanceCovered") ?? "-"),
+    speed: String(readFleetxValue(item, "speed", "speedKph", "currentSpeed") ?? "0 km/h"),
+    odometer: String(readFleetxValue(item, "odometer", "odometerReading") ?? "-"),
+    location: String(readFleetxValue(item, "location", "locationName", "address", "city") ?? "Location unavailable"),
+    since: String(readFleetxValue(item, "since", "lastUpdated", "updatedAt") ?? "-"),
+    x,
+    y,
+    ...(Number.isFinite(latitude) && Number.isFinite(longitude) ? { latitude, longitude } : {}),
+  };
+}
+
 const navItems = [
   { label: "Realtime", icon: Navigation },
   { label: "Trips", icon: Route },
@@ -270,6 +311,7 @@ const navItems = [
   { label: "Enquiries", icon: ClipboardList },
   { label: "Vehicles", icon: Truck },
   { label: "Jobs", icon: BriefcaseBusiness, expandable: true },
+  { label: "Records", icon: CircleGauge, expandable: true },
   { label: "Issues", icon: AlertCircle },
   { label: "Users", icon: Users, adminOnly: true },
   { label: "Account", icon: UserCircle, expandable: true },
@@ -282,6 +324,7 @@ const topNavItems = [
   "Enquiries",
   "Vehicles",
   "Jobs",
+  "Records",
   "Issues",
   "Users",
 ];
@@ -301,6 +344,11 @@ const sidebarFlyouts: Record<string, { label: string; icon: typeof BriefcaseBusi
   ],
   Account: [
     { label: "Sign Out", icon: LogOut },
+  ],
+  Records: [
+    { label: "Tyre Management", icon: CircleGauge },
+    { label: "Service History", icon: ClipboardList },
+    { label: "Fuel Log", icon: Fuel },
   ],
 };
 
@@ -349,7 +397,7 @@ function TopNavigation({
 }) {
   const openMenu = openDropdown?.startsWith("top:") ? openDropdown.slice(4) : null;
   const profileOpen = openDropdown === "profile";
-  const profileName = providedProfileName?.trim() || auth.currentUser?.displayName?.trim() || auth.currentUser?.email?.split("@")[0] || "Fleet User";
+  const profileName = providedProfileName?.trim() || auth?.currentUser?.displayName?.trim() || auth?.currentUser?.email?.split("@")[0] || "Fleet User";
   return (
     <header className="top-navigation">
       <div className="top-navigation-left">
@@ -376,7 +424,7 @@ function TopNavigation({
                 {item}
                 {expandable && <span className="top-navigation-chevron" aria-hidden="true" />}
               </button>
-              {expandable && openMenu === item && <SidebarFlyout label={item} className="top-navigation-flyout" onSelect={() => setOpenDropdown(null)} onSignOut={onSignOut} profileName={profileName} isAdmin={isAdmin} />}
+              {expandable && openMenu === item && <SidebarFlyout label={item} className="top-navigation-flyout" onSelect={() => setOpenDropdown(null)} onNavigate={onNavigate} onSignOut={onSignOut} profileName={profileName} isAdmin={isAdmin} />}
             </div>
           );
         })}
@@ -410,6 +458,7 @@ function TopNavigation({
 function SidebarFlyout({
   label,
   onSelect,
+  onNavigate,
   onSignOut,
   profileName,
   isAdmin,
@@ -418,6 +467,7 @@ function SidebarFlyout({
 }: {
   label: string;
   onSelect: () => void;
+  onNavigate?: (item: string) => void;
   onSignOut?: () => void;
   profileName?: string;
   isAdmin?: boolean;
@@ -425,7 +475,7 @@ function SidebarFlyout({
   className?: string;
 }) {
   const items = sidebarFlyouts[label] ?? [];
-  const displayName = profileName?.trim() || auth.currentUser?.displayName?.trim() || auth.currentUser?.email?.split("@")[0] || "Fleet User";
+  const displayName = profileName?.trim() || auth?.currentUser?.displayName?.trim() || auth?.currentUser?.email?.split("@")[0] || "Fleet User";
   return (
     <div className={`sidebar-flyout ${label === "Account" ? "profile-sidebar-flyout" : ""} ${className ?? ""}`} style={style} data-dropdown-surface="true" role="menu" aria-label={`${label} menu`}>
       {label === "Account" ? <>
@@ -442,7 +492,7 @@ function SidebarFlyout({
         </div>
         <div className="sidebar-flyout-grid">
           {items.map(({ label: itemLabel, icon: Icon }) => (
-            <button key={itemLabel} role="menuitem" onClick={() => { onSelect(); if (itemLabel === "Sign Out") onSignOut?.(); }}>
+            <button key={itemLabel} role="menuitem" onClick={() => { onSelect(); if (itemLabel === "Sign Out") onSignOut?.(); else onNavigate?.(itemLabel); }}>
               <Icon size={14} strokeWidth={1.7} />
               <span>{itemLabel}</span>
             </button>
@@ -543,6 +593,7 @@ function Sidebar({
             setOpenDropdown(null);
             onItemSelect();
           }}
+          onNavigate={onNavigate}
           onSignOut={onSignOut}
           profileName={profileName}
           isAdmin={isAdmin}
@@ -552,7 +603,7 @@ function Sidebar({
   );
 }
 
-function RealtimeStats() {
+function RealtimeStats({ vehicles: liveVehicles }: { vehicles: Vehicle[] }) {
   const [expanded, setExpanded] = useState(false);
   const hoverTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const clearHoverTimer = () => {
@@ -570,36 +621,43 @@ function RealtimeStats() {
     hoverTimerRef.current = setTimeout(() => setExpanded(false), 180);
   };
   useEffect(() => clearHoverTimer, []);
+  const counts = {
+    vehicles: liveVehicles.length,
+    running: liveVehicles.filter((vehicle) => vehicle.status === "running").length,
+    notOnJob: liveVehicles.filter((vehicle) => vehicle.status === "not-on-job").length,
+    onJob: liveVehicles.filter((vehicle) => vehicle.status === "on-job").length,
+    late: liveVehicles.filter((vehicle) => vehicle.status === "late").length,
+  };
   const compactStats = [
-    { value: "39", label: "Vehicles" },
-    { value: "9", label: "Running", tone: "green" },
-    { value: "39", label: "Not On Job" },
-    { value: "0", label: "On Job" },
-    { value: "0", label: "Late" },
+    { value: String(counts.vehicles), label: "Vehicles" },
+    { value: String(counts.running), label: "Running", tone: "green" },
+    { value: String(counts.notOnJob), label: "Not On Job" },
+    { value: String(counts.onJob), label: "On Job" },
+    { value: String(counts.late), label: "Late" },
   ];
   const detailColumns = [
     [
-      { value: "39", label: "Vehicles" },
+      { value: String(counts.vehicles), label: "Vehicles" },
       { value: "2", label: "Idle", tone: "yellow" },
       { value: "4", label: "2<Parked<4 Hr" },
       { value: "6", label: "Parked>5 Hr" },
       { value: "3", label: "Not Online", tone: "red" },
     ],
     [
-      { value: "9", label: "Running", tone: "green" },
+      { value: String(counts.running), label: "Running", tone: "green" },
       { value: "18", label: "Parked" },
       { value: "0", label: "4<Parked<5 Hr" },
       { value: "7", label: "Discharged", tone: "red" },
     ],
     [
-      { value: "39", label: "Not On Job" },
+      { value: String(counts.notOnJob), label: "Not On Job" },
       { value: "0", label: "Waiting To Load" },
       { value: "0", label: "Loaded" },
       { value: "0", label: "Unloading" },
       { value: "0", label: "Scheduled" },
     ],
     [
-      { value: "0", label: "On Job" },
+      { value: String(counts.onJob), label: "On Job" },
       { value: "0", label: "Loading" },
       { value: "0", label: "Waiting To Unload" },
       { value: "0", label: "Waiting In Garage" },
@@ -608,7 +666,7 @@ function RealtimeStats() {
       { value: "0", label: "Unloading Completed" },
     ],
     [
-      { value: "0", label: "Late" },
+      { value: String(counts.late), label: "Late" },
       { value: "0", label: "On Time" },
       { value: "0", label: "Early" },
     ],
@@ -647,21 +705,74 @@ function RealtimeStats() {
   );
 }
 
+function FleetReport({ vehicles: liveVehicles }: { vehicles: Vehicle[] }) {
+  const running = liveVehicles.filter((vehicle) => vehicle.status === "running");
+  const idle = liveVehicles.filter((vehicle) => vehicle.status === "not-on-job");
+  const onJob = liveVehicles.filter((vehicle) => vehicle.status === "on-job");
+  const late = liveVehicles.filter((vehicle) => vehicle.status === "late");
+  const locations = Array.from(liveVehicles.reduce<Map<string, Vehicle[]>>((groups, vehicle) => {
+    const location = vehicle.location || "Location unavailable";
+    groups.set(location, [...(groups.get(location) ?? []), vehicle]);
+    return groups;
+  }, new Map()).entries()).sort(([, first], [, second]) => second.length - first.length);
+
+  const downloadReport = () => {
+    const rows = [
+      ["Vehicle", "Registration", "Status", "Location", "Driver", "Speed"],
+      ...liveVehicles.map((vehicle) => [vehicle.id, vehicle.plate, vehicle.status === "not-on-job" ? "Idle" : vehicle.status, vehicle.location, vehicle.driver, vehicle.speed]),
+    ];
+    const csv = rows.map((row) => row.map((value) => `"${String(value).replace(/"/g, '""')}"`).join(",")).join("\n");
+    const link = document.createElement("a");
+    link.href = URL.createObjectURL(new Blob([csv], { type: "text/csv;charset=utf-8" }));
+    link.download = `fleet-realtime-report-${new Date().toISOString().slice(0, 10)}.csv`;
+    link.click();
+    URL.revokeObjectURL(link.href);
+  };
+
+  const statusCards = [
+    ["Total vehicles", liveVehicles.length, "total"],
+    ["Running", running.length, "running"],
+    ["Idle", idle.length, "idle"],
+    ["On job", onJob.length, "on-job"],
+    ["Late", late.length, "late"],
+  ];
+  return (
+    <section className="fleet-report" aria-label="Live fleet report">
+      <div className="fleet-report-heading">
+        <div><span>LIVE FLEET REPORT</span><h2>Vehicle status and locations</h2><p>Current counts from Fleetx realtime data.</p></div>
+        <button type="button" className="fleet-report-download" onClick={downloadReport}><Download size={14} /> Export CSV</button>
+      </div>
+      <div className="fleet-report-statuses">
+        {statusCards.map(([label, value, tone]) => <div className={`fleet-report-status ${tone}`} key={label}><strong>{value}</strong><span>{label}</span></div>)}
+      </div>
+      <div className="fleet-report-locations">
+        <strong>Vehicles by location</strong>
+        <div className="fleet-report-location-grid">
+          {locations.map(([location, locationVehicles]) => <div className="fleet-report-location" key={location}><div><strong>{location}</strong><span>{locationVehicles.length} vehicle{locationVehicles.length === 1 ? "" : "s"}</span></div><small>{locationVehicles.map((vehicle) => vehicle.plate).join(", ")}</small></div>)}
+        </div>
+      </div>
+    </section>
+  );
+}
+
 function FilterPanel({
+  vehicles: liveVehicles,
   filters,
   setFilters,
   onClose,
 }: {
+  vehicles: Vehicle[];
   filters: Record<string, boolean>;
   setFilters: (next: Record<string, boolean>) => void;
   onClose: () => void;
 }) {
+  const count = (status: VehicleStatus) => liveVehicles.filter((vehicle) => vehicle.status === status).length;
   const options = [
-    ["running", "Running", "3 vehicles"],
-    ["on-job", "On Job", "0 vehicles"],
-    ["not-on-job", "Not On Job", "39 vehicles"],
-    ["late", "Late", "0 vehicles"],
-    ["insurance", "Insurance", "34 vehicles"],
+    ["running", "Running", `${count("running")} vehicles`],
+    ["on-job", "On Job", `${count("on-job")} vehicles`],
+    ["not-on-job", "Not On Job", `${count("not-on-job")} vehicles`],
+    ["late", "Late", `${count("late")} vehicles`],
+    ["insurance", "Insurance", `${liveVehicles.filter((vehicle) => vehicle.insurance).length} vehicles`],
   ];
   return (
     <div className="filter-panel" data-dropdown-surface="true">
@@ -884,7 +995,7 @@ function MapArtwork() {
   );
 }
 
-function MapPanel({ selected, focusedVehicle, onSelect, onFullscreen }: { selected: Vehicle; focusedVehicle: Vehicle | null; onSelect: (id: string) => void; onFullscreen: () => void }) {
+function MapPanel({ vehicles: liveVehicles, selected, focusedVehicle, onSelect, onFullscreen }: { vehicles: Vehicle[]; selected: Vehicle; focusedVehicle: Vehicle | null; onSelect: (id: string) => void; onFullscreen: () => void }) {
   const mapContainerRef = useRef<HTMLDivElement>(null);
   const mapRef = useRef<google.maps.Map | null>(null);
   const mapsLibraryRef = useRef<google.maps.MapsLibrary | null>(null);
@@ -920,7 +1031,7 @@ function MapPanel({ selected, focusedVehicle, onSelect, onFullscreen }: { select
   const handleShowAll = () => {
     if (!mapRef.current) return;
     const bounds = new google.maps.LatLngBounds();
-    vehicles.forEach((vehicle) => bounds.extend(vehiclePosition(vehicle)));
+    liveVehicles.forEach((vehicle) => bounds.extend(vehiclePosition(vehicle)));
     mapRef.current.fitBounds(bounds);
   };
 
@@ -981,7 +1092,7 @@ function MapPanel({ selected, focusedVehicle, onSelect, onFullscreen }: { select
     const markerLibrary = markerLibraryRef.current;
     if (mapStatus !== "ready" || !map || !markerLibrary) return;
 
-    vehicles.forEach((vehicle) => {
+    liveVehicles.forEach((vehicle) => {
       const isSelected = vehicle.id === selected.id;
       const marker = markersRef.current.get(vehicle.id) ?? new markerLibrary.Marker({
         map,
@@ -997,7 +1108,7 @@ function MapPanel({ selected, focusedVehicle, onSelect, onFullscreen }: { select
         markersRef.current.set(vehicle.id, marker);
       }
     });
-  }, [mapStatus, onSelect, selected.id]);
+  }, [liveVehicles, mapStatus, onSelect, selected.id]);
 
   useEffect(() => {
     const map = mapRef.current;
@@ -1109,7 +1220,7 @@ export function FleetLayout({
   const [openDropdown, setOpenDropdown] = useState<string | null>(null);
   const [userProfile, setUserProfile] = useState<UserProfile | undefined>(getCachedUserProfile);
   const [dismissedIssueIds, setDismissedIssueIds] = useState<string[]>([]);
-  const enquiryDismissalStorageKey = `vasudev-fleet:dismissed-enquiries:${auth.currentUser?.uid ?? "unknown"}`;
+  const enquiryDismissalStorageKey = `vasudev-fleet:dismissed-enquiries:${auth?.currentUser?.uid ?? "unknown"}`;
   const [dismissedEnquiryIds, setDismissedEnquiryIds] = useState<string[]>(() => readDismissedEnquiryIds(enquiryDismissalStorageKey));
   const compactViewport = typeof window !== "undefined" && window.matchMedia("(max-width: 960px)").matches;
 
@@ -1122,7 +1233,7 @@ export function FleetLayout({
   }, [dismissedEnquiryIds, enquiryDismissalStorageKey]);
 
   useEffect(() => {
-    const userId = auth.currentUser?.uid;
+    const userId = auth?.currentUser?.uid;
     if (!userId || userId === cachedProfileUserId) return;
 
     let active = true;
@@ -1181,6 +1292,8 @@ export function FleetLayout({
     Overview: "/overview",
     Vehicles: "/vehicles",
     Jobs: "/jobs",
+    Records: "/records",
+    "Fuel Log": "/fuel",
     Issues: "/issues",
     Users: "/users",
     Alarms: "/alarms",
@@ -1227,6 +1340,8 @@ export function FleetLayout({
 }
 
 export default function Index({ onSignOut }: { onSignOut: () => void }) {
+  const [liveVehicles, setLiveVehicles] = useState<Vehicle[]>(vehicles);
+  const [realtimeError, setRealtimeError] = useState<string | null>(null);
   const [search, setSearch] = useState("");
   const [tab, setTab] = useState<Tab>("vehicles");
   const [selectedId, setSelectedId] = useState(vehicles[0].id);
@@ -1237,6 +1352,29 @@ export default function Index({ onSignOut }: { onSignOut: () => void }) {
   const [vehiclePanelWidth, setVehiclePanelWidth] = useState(DEFAULT_VEHICLE_PANEL_WIDTH);
   const [isResizingVehiclePanel, setIsResizingVehiclePanel] = useState(false);
   const vehiclePanelResize = useRef({ active: false, startX: 0, startWidth: DEFAULT_VEHICLE_PANEL_WIDTH });
+
+  useEffect(() => {
+    let active = true;
+    const loadRealtime = async () => {
+      try {
+        const payload = await fetchFleetxRealtime();
+        const nextVehicles = extractFleetxVehicles(payload).map(normalizeFleetxVehicle);
+        if (active && nextVehicles.length) {
+          setLiveVehicles(nextVehicles);
+          setSelectedId((current) => nextVehicles.some((vehicle) => vehicle.id === current) ? current : nextVehicles[0].id);
+          setRealtimeError(null);
+        }
+      } catch (error) {
+        if (active) setRealtimeError(error instanceof Error ? error.message : "Fleetx realtime data is unavailable.");
+      }
+    };
+    void loadRealtime();
+    const interval = window.setInterval(loadRealtime, 30_000);
+    return () => {
+      active = false;
+      window.clearInterval(interval);
+    };
+  }, []);
 
   const setClampedVehiclePanelWidth = (width: number) => {
     setVehiclePanelWidth(Math.min(MAX_VEHICLE_PANEL_WIDTH, Math.max(MIN_VEHICLE_PANEL_WIDTH, width)));
@@ -1268,13 +1406,13 @@ export default function Index({ onSignOut }: { onSignOut: () => void }) {
 
   const filteredVehicles = useMemo(() => {
     const query = search.trim().toLowerCase();
-    return vehicles.filter((vehicle) => {
+    return liveVehicles.filter((vehicle) => {
       const matchesSearch = !query || [vehicle.plate, vehicle.id, vehicle.driver, vehicle.group, vehicle.location].some((value) => value.toLowerCase().includes(query));
       const selectedFilters = Object.entries(filters).filter(([, checked]) => checked).map(([key]) => key);
       const matchesFilters = !selectedFilters.length || selectedFilters.some((filter) => filter === "insurance" ? vehicle.insurance : vehicle.status === filter);
       return matchesSearch && matchesFilters;
     });
-  }, [search, filters]);
+  }, [liveVehicles, search, filters]);
 
   useEffect(() => {
     setLoadedVehicleCount(5);
@@ -1286,10 +1424,10 @@ export default function Index({ onSignOut }: { onSignOut: () => void }) {
     if (nearBottom) setLoadedVehicleCount((count) => Math.min(count + 5, filteredVehicles.length));
   };
 
-  const selectedVehicle = vehicles.find((vehicle) => vehicle.id === selectedId) ?? vehicles[0];
+  const selectedVehicle = liveVehicles.find((vehicle) => vehicle.id === selectedId) ?? liveVehicles[0];
   const loadedVehicles = filteredVehicles.slice(0, loadedVehicleCount);
   const focusVehicle = (vehicleId: string) => {
-    const vehicle = vehicles.find((candidate) => candidate.id === vehicleId);
+    const vehicle = liveVehicles.find((candidate) => candidate.id === vehicleId);
     if (!vehicle) return;
     setSelectedId(vehicle.id);
     setFocusedVehicle({ ...vehicle });
@@ -1299,8 +1437,10 @@ export default function Index({ onSignOut }: { onSignOut: () => void }) {
       {({ openDropdown, setOpenDropdown }) => (
         <>
           <div className="stats-wrap">
-            <RealtimeStats />
-            {openDropdown === "filter" && <FilterPanel filters={filters} setFilters={setFilters} onClose={() => setOpenDropdown(null)} />}
+            {realtimeError && <div className="realtime-api-status" role="status">Live Fleetx data unavailable. Showing the latest available fleet snapshot.</div>}
+            <RealtimeStats vehicles={liveVehicles} />
+            <FleetReport vehicles={liveVehicles} />
+            {openDropdown === "filter" && <FilterPanel vehicles={liveVehicles} filters={filters} setFilters={setFilters} onClose={() => setOpenDropdown(null)} />}
           </div>
           <div className={`realtime-workspace${isResizingVehiclePanel ? " resizing" : ""}`}>
             <section className="vehicle-panel" style={{ "--vehicle-panel-width": `${vehiclePanelWidth}px` } as CSSProperties}>
@@ -1322,7 +1462,7 @@ export default function Index({ onSignOut }: { onSignOut: () => void }) {
               onPointerCancel={handleVehiclePanelResizeEnd}
               onKeyDown={handleVehiclePanelResizeKeyDown}
             />
-            <MapPanel selected={selectedVehicle} focusedVehicle={focusedVehicle} onSelect={focusVehicle} onFullscreen={() => setMapFullscreen((open) => !open)} />
+            <MapPanel vehicles={liveVehicles} selected={selectedVehicle} focusedVehicle={focusedVehicle} onSelect={focusVehicle} onFullscreen={() => setMapFullscreen((open) => !open)} />
           </div>
         </>
       )}

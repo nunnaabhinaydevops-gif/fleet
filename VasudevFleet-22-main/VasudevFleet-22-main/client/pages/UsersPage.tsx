@@ -69,7 +69,7 @@ export default function UsersPage({ onSignOut }: UsersPageProps) {
   }, [search, users]);
 
   async function handleRoleChange(userId: string, role: FleetUserRole) {
-    if (!isAdmin || auth.currentUser?.uid === userId || updatingUid) return;
+    if (!isAdmin || auth?.currentUser?.uid === userId || updatingUid) return;
 
     setUpdatingUid(userId);
     setRoleFeedback(null);
@@ -122,7 +122,7 @@ export default function UsersPage({ onSignOut }: UsersPageProps) {
                   <td><strong>{user.displayName || "Unnamed user"}</strong></td>
                   <td>{user.email || "—"}</td>
                   <td>
-                    {isAdmin && auth.currentUser?.uid !== user.uid && user.role ? <>
+                    {isAdmin && auth?.currentUser?.uid !== user.uid && user.role ? <>
                       <select
                         className="user-role-select"
                         value={user.role}

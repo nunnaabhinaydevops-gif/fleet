@@ -164,9 +164,9 @@ function formatBillType(billType: string) {
   return value;
 }
 
-function formatTrvSubtype(trip: Pick<TripRecord, "billType" | "trvSubtype">) {
+function formatTrvSubtype(trip: { billType?: string; trvSubtype?: string }) {
   const storedSubtype = trip.trvSubtype?.trim();
-  const legacySubtype = trip.billType.split(":").pop()?.trim();
+  const legacySubtype = trip.billType?.split(":").pop()?.trim();
   const subtype = (storedSubtype || legacySubtype || "").toUpperCase();
   return subtype === "FCM" || subtype === "RCM" ? subtype : "—";
 }
@@ -449,7 +449,7 @@ export default function TripsPage({ onSignOut }: TripsPageProps) {
     return Array.from(users.entries()).sort(([, firstName], [, secondName]) => firstName.localeCompare(secondName));
   }, [trips]);
   const profileAssigneeName = useMemo(() => {
-    const currentUserId = auth.currentUser?.uid;
+    const currentUserId = auth?.currentUser?.uid;
     if (!currentUserId) return undefined;
     return trips.find((trip) => trip.assigneeName.trim() && (trip.createdBy === currentUserId || trip.userId === currentUserId))?.assigneeName.trim();
   }, [trips]);

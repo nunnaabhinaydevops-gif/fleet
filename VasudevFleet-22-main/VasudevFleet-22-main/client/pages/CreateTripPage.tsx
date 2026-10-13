@@ -6,6 +6,7 @@ import { useRef } from "react";
 import { toast } from "sonner";
 import {
   auth,
+  createJobFromTrip,
   getCurrentUserProfile,
   getTrip,
   saveTrip,
@@ -567,7 +568,7 @@ export default function CreateTripPage({ onSignOut }: CreateTripPageProps) {
     let active = true;
     void getCurrentUserProfile().then((profile) => {
       if (!active) return;
-      const assigneeName = profile?.assigneeName?.trim() || auth.currentUser?.displayName || "";
+      const assigneeName = profile?.assigneeName?.trim() || auth?.currentUser?.displayName || "";
       if (assigneeName) setForm((current) => current.assigneeName ? current : { ...current, assigneeName });
     });
     return () => { active = false; };
@@ -794,8 +795,9 @@ export default function CreateTripPage({ onSignOut }: CreateTripPageProps) {
         toast.success("Trip updated successfully.");
       } else {
         const savedTrip = await saveTrip(trip);
+        await createJobFromTrip(savedTrip);
         try {
-          await auditLogService.logTripCreation(savedTrip.documentId, trip.customerCompanyName, auth.currentUser?.uid || "system");
+          await auditLogService.logTripCreation(savedTrip.documentId, trip.customerCompanyName, auth?.currentUser?.uid || "system");
         } catch (auditError) {
           console.error("Trip creation audit logging failed:", auditError);
         }

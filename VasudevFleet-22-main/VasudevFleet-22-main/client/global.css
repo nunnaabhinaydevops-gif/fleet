@@ -181,6 +181,7 @@ h1 { font-size: 21px; line-height: 1.2; margin: 6px 0 0; font-weight: 700; lette
 .heading-live { display: inline-flex; align-items: center; gap: 7px; color: #4b9d64; font-weight: 600; }
 .heading-live span { width: 5px; height: 5px; box-shadow: none; }
 .stats-wrap { position: relative; z-index: 4; }
+.realtime-api-status { margin: 0 0 7px; padding: 7px 10px; border: 1px solid #f0dfb5; border-radius: 4px; color: #86651d; background: #fff9e9; font-size: 10px; }
 .realtime-stats { height: 60px; display: flex; align-items: center; justify-content: space-between; border: 1px solid #e0e7ec; border-radius: 8px; background: #fff; box-shadow: 0 2px 5px rgba(35,53,67,.025); transition: height .16s ease; }
 .realtime-stats.expanded { height: 250px; align-items: flex-start; }
 .stats-list { display: flex; height: 100%; align-items: center; }
@@ -199,6 +200,37 @@ h1 { font-size: 21px; line-height: 1.2; margin: 6px 0 0; font-weight: 700; lette
 .expanded-stats-column:nth-child(4) .expanded-stat:last-child { overflow: visible; align-items: flex-start; }
 .expanded-stats-column:nth-child(4) .expanded-stat:last-child span { overflow: visible; text-overflow: clip; white-space: normal; line-height: 1.1; }
 .realtime-stats.expanded .stats-actions { align-self: flex-start; padding-top: 8px; }
+.fleet-report { margin-top: 10px; padding: 13px 15px 15px; border: 1px solid #dfe7ec; border-radius: 8px; background: #fff; box-shadow: 0 2px 5px rgba(35,53,67,.025); }
+.fleet-report-heading { display: flex; align-items: center; justify-content: space-between; gap: 16px; }
+.fleet-report-heading > div { min-width: 0; }
+.fleet-report-heading span { color: #6d7c85; font-size: 8px; font-weight: 800; letter-spacing: .11em; }
+.fleet-report-heading h2 { margin: 4px 0 0; color: #263944; font-size: 14px; }
+.fleet-report-heading p { margin: 4px 0 0; color: #8b9aa1; font-size: 10px; }
+.fleet-report-download { height: 30px; display: inline-flex; align-items: center; gap: 6px; flex: 0 0 auto; padding: 0 10px; border: 1px solid #a9d2df; border-radius: 4px; color: #176b9b; background: #f2fbfd; font-size: 10px; font-weight: 700; }
+.fleet-report-download:hover { background: #e5f6fa; }
+.fleet-report-statuses { display: grid; grid-template-columns: repeat(5, minmax(90px, 1fr)); margin-top: 13px; border: 1px solid #edf1f3; border-radius: 5px; overflow: hidden; }
+.fleet-report-status { min-height: 54px; display: flex; align-items: center; gap: 8px; padding: 7px 12px; border-right: 1px solid #edf1f3; }
+.fleet-report-status:last-child { border-right: 0; }
+.fleet-report-status strong { color: #253741; font-size: 17px; }
+.fleet-report-status span { color: #74868f; font-size: 10px; }
+.fleet-report-status.running strong { color: #238b54; }
+.fleet-report-status.idle strong { color: #7b8a91; }
+.fleet-report-status.on-job strong { color: #2182bc; }
+.fleet-report-status.late strong { color: #cb5a51; }
+.fleet-report-locations { margin-top: 13px; }
+.fleet-report-locations > strong { color: #425761; font-size: 11px; }
+.fleet-report-location-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 7px; margin-top: 8px; }
+.fleet-report-location { min-width: 0; padding: 8px 10px; border: 1px solid #edf1f3; border-radius: 4px; background: #fbfcfd; }
+.fleet-report-location > div { display: flex; align-items: baseline; justify-content: space-between; gap: 8px; }
+.fleet-report-location strong { min-width: 0; overflow: hidden; color: #405761; font-size: 10px; text-overflow: ellipsis; white-space: nowrap; }
+.fleet-report-location span { flex: 0 0 auto; color: #2580a6; font-size: 9px; font-weight: 700; }
+.fleet-report-location small { display: block; overflow: hidden; margin-top: 5px; color: #93a0a6; font-size: 9px; text-overflow: ellipsis; white-space: nowrap; }
+@media (max-width: 720px) {
+  .fleet-report-statuses { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .fleet-report-status:nth-child(2), .fleet-report-status:nth-child(4) { border-right: 0; }
+  .fleet-report-status:nth-child(-n + 3) { border-bottom: 1px solid #edf1f3; }
+  .fleet-report-location-grid { grid-template-columns: 1fr; }
+}
 .stats-actions { display: flex; align-items: center; gap: 3px; padding: 0 11px; }
 .stats-icon { width: 29px; height: 29px; }
 .stats-icon.active { background: #e8f6fb; color: #0d87c5; }
@@ -1054,6 +1086,40 @@ h1 { font-size: 21px; line-height: 1.2; margin: 6px 0 0; font-weight: 700; lette
 .coming-soon-eyebrow { color: #2181ad; font-size: 10px; font-weight: 800; letter-spacing: .11em; text-transform: uppercase; }
 .coming-soon-card h1 { margin: 9px 0 0; color: #273b47; font-size: 25px; }
 .coming-soon-card p { max-width: 320px; margin: 10px 0 0; color: #8999a2; font-size: 12px; line-height: 1.6; }
+.jobs-page { width: 100%; min-height: 0; overflow-y: auto; padding: 52px 0 40px; background: #f5f8fb; }
+.jobs-heading, .jobs-stat-grid, .jobs-list-card { width: min(100% - 34px, 1328px); margin-right: auto; margin-left: auto; }
+.jobs-heading > div > span { color: #2784aa; font-size: 9px; font-weight: 800; letter-spacing: .11em; }
+.jobs-heading h1 { margin: 8px 0 0; color: #263e4a; font-size: 28px; }
+.jobs-heading h1 small { margin-left: 7px; color: #91a1a9; font-size: 13px; font-weight: 500; }
+.jobs-heading p { margin: 8px 0 0; color: #8195a0; font-size: 12px; }
+.jobs-stat-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; margin-top: 26px; }
+.jobs-stat { min-height: 87px; display: flex; align-items: center; gap: 13px; padding: 0 18px; border: 1px solid #e0e8ed; border-radius: 8px; background: #fff; box-shadow: 0 2px 6px rgba(25,57,75,.035); }
+.jobs-stat > span { width: 40px; height: 40px; display: grid; place-items: center; border-radius: 8px; }
+.jobs-stat.active > span { color: #2385ae; background: #e7f5fa; }.jobs-stat.delayed > span { color: #ca8641; background: #fff2e2; }.jobs-stat.completed > span { color: #328c65; background: #e7f6ee; }
+.jobs-stat small { display: block; color: #8799a2; font-size: 10px; }.jobs-stat strong { display: block; margin-top: 5px; color: #263f4c; font-size: 21px; }
+.jobs-list-card { margin-top: 18px; overflow: hidden; border: 1px solid #e0e8ed; border-radius: 8px; background: #fff; box-shadow: 0 2px 6px rgba(25,57,75,.035); }
+.jobs-list-toolbar { min-height: 67px; display: flex; align-items: center; justify-content: space-between; gap: 15px; padding: 0 18px; border-bottom: 1px solid #e8eef1; }
+.jobs-tabs { display: flex; align-items: center; gap: 7px; }.jobs-tabs button { height: 34px; padding: 0 12px; border: 0; border-radius: 6px; color: #627985; background: transparent; font-size: 10px; font-weight: 700; }.jobs-tabs button.active { color: #277e9e; background: #e8f6fa; }
+.jobs-search { width: 305px; height: 37px; display: flex; align-items: center; gap: 7px; padding: 0 10px; border: 1px solid #dbe5e9; border-radius: 5px; color: #93a4ac; }.jobs-search input { min-width: 0; flex: 1; border: 0; outline: 0; color: #405966; background: transparent; font-size: 10px; }.jobs-search input::placeholder { color: #9babb2; }
+.jobs-table-wrap { overflow-x: auto; }.jobs-table { width: 100%; min-width: 780px; border-collapse: collapse; }.jobs-table th { height: 40px; padding: 0 16px; color: #7d9099; background: #fbfcfd; font-size: 10px; text-align: left; }.jobs-table td { height: 65px; padding: 9px 16px; border-top: 1px solid #edf1f3; color: #536873; font-size: 11px; }.jobs-table td strong, .jobs-table td small { display: block; }.jobs-table td strong { color: #344d59; }.jobs-table td small { margin-top: 4px; color: #a0adb3; font-size: 9px; }.jobs-table td b { margin: 0 5px; color: #9babb2; font-weight: 400; }.jobs-table select { padding: 5px 7px; border: 1px solid #d6e1e5; border-radius: 4px; color: #536873; background: #fff; font-size: 10px; }
+.job-status { display: inline-flex; padding: 5px 8px; border-radius: 12px; font-size: 9px; font-weight: 700; }.job-status.active { color: #277fa4; background: #e8f6fa; }.job-status.delayed { color: #a87328; background: #fff5df; }.job-status.completed { color: #39815e; background: #e9f7ef; }.job-status.closed { color: #778890; background: #eef2f4; }
+.jobs-empty { min-height: 214px; display: grid; justify-items: center; align-content: center; gap: 8px; color: #8296a0; }.jobs-empty > span { width: 48px; height: 48px; display: grid; place-items: center; border-radius: 50%; color: #2887ac; background: #e8f6fa; }.jobs-empty strong { color: #405966; font-size: 13px; }.jobs-empty p { margin: 0; font-size: 10px; }
+@media (max-width: 720px) { .jobs-page { padding-top: 26px; }.jobs-stat-grid { grid-template-columns: 1fr; }.jobs-list-toolbar { align-items: stretch; flex-direction: column; padding: 13px; }.jobs-search { width: 100%; }.jobs-heading, .jobs-stat-grid, .jobs-list-card { width: calc(100% - 20px); } }
+.jobs-enterprise-page { padding: 28px 0 44px; background: #f5f8fb; }
+.jobs-enterprise-header, .jobs-view-switcher, .jobs-enterprise-search, .jobs-filter-bar, .jobs-summary-cards, .jobs-board, .jobs-enterprise-table, .jobs-map-handoff { width: min(100% - 34px, 1328px); margin-right: auto; margin-left: auto; }
+.jobs-enterprise-header { display: flex; align-items: flex-end; justify-content: space-between; gap: 20px; }.jobs-enterprise-header > div > span { color: #2784aa; font-size: 9px; font-weight: 800; letter-spacing: .11em; }.jobs-enterprise-header h1 { margin: 7px 0 0; color: #263e4a; font-size: 30px; }.jobs-enterprise-header p { margin: 7px 0 0; color: #8195a0; font-size: 12px; }.jobs-enterprise-header > button { height: 38px; display: inline-flex; align-items: center; gap: 7px; padding: 0 14px; border: 0; border-radius: 5px; color: #fff; background: #087bc7; font-size: 11px; font-weight: 700; }.jobs-enterprise-header > button:hover { background: #066bab; }
+.jobs-view-switcher { display: flex; justify-content: flex-end; gap: 2px; margin-top: -34px; }.jobs-view-switcher button { height: 33px; padding: 0 12px; border: 1px solid #d4e0e5; color: #64808c; background: #fff; font-size: 10px; font-weight: 700; }.jobs-view-switcher button:first-child { border-radius: 5px 0 0 5px; }.jobs-view-switcher button:last-child { border-radius: 0 5px 5px 0; }.jobs-view-switcher button.active { color: #fff; border-color: #087bc7; background: #087bc7; }
+.jobs-enterprise-search { height: 46px; display: flex; align-items: center; gap: 10px; margin-top: 26px; padding: 0 14px; border: 1px solid #d9e4e9; border-radius: 6px; color: #78909a; background: #fff; box-shadow: 0 2px 7px rgba(25,57,75,.03); }.jobs-enterprise-search input { min-width: 0; flex: 1; border: 0; outline: 0; color: #405966; background: transparent; font-size: 12px; }.jobs-enterprise-search input::placeholder { color: #9aabb3; }
+.jobs-filter-bar { display: flex; align-items: center; gap: 8px; margin-top: 11px; }.jobs-filter-bar label { height: 34px; display: flex; align-items: center; gap: 6px; padding: 0 9px; border: 1px solid #d9e4e9; border-radius: 5px; color: #7b9099; background: #fff; }.jobs-filter-bar select { border: 0; outline: 0; color: #536b76; background: #fff; font-size: 10px; }.jobs-filter-bar > button { height: 34px; margin-left: auto; padding: 0 9px; border: 0; color: #2781a5; background: transparent; font-size: 10px; font-weight: 700; }
+.jobs-summary-cards { display: grid; grid-template-columns: repeat(6, 1fr); gap: 9px; margin-top: 16px; }.jobs-summary-card { min-height: 62px; display: flex; flex-direction: column; align-items: flex-start; justify-content: center; gap: 5px; padding: 0 13px; border: 1px solid #dfe8ed; border-left: 3px solid #b7cbd4; border-radius: 6px; color: #667d87; background: #fff; text-align: left; }.jobs-summary-card:hover, .jobs-summary-card.selected { border-color: #77bad2; box-shadow: 0 3px 10px rgba(25,91,118,.08); }.jobs-summary-card small { font-size: 9px; font-weight: 800; letter-spacing: .06em; }.jobs-summary-card strong { color: #263e4a; font-size: 20px; }.jobs-summary-card.active, .jobs-summary-card.transit { border-left-color: #238ac0; }.jobs-summary-card.loading { border-left-color: #5e73c6; }.jobs-summary-card.unloading { border-left-color: #d48a3c; }.jobs-summary-card.delayed { border-left-color: #ca5b52; }.jobs-summary-card.completed { border-left-color: #42966b; }
+.jobs-board { margin-top: 22px; }.jobs-board-section { margin-bottom: 18px; }.jobs-section-heading { width: 100%; display: flex; align-items: center; justify-content: space-between; padding: 0 3px 8px; border: 0; color: #5d7782; background: transparent; text-align: left; }.jobs-section-heading > span { display: flex; align-items: center; gap: 7px; }.jobs-section-heading svg { transition: transform .15s; }.jobs-section-heading svg.open { transform: rotate(0deg); }.jobs-section-heading strong { color: #38535f; font-size: 11px; letter-spacing: .07em; }.jobs-section-heading em { padding: 3px 7px; border-radius: 10px; color: #367f9b; background: #e8f5f9; font-size: 9px; font-style: normal; font-weight: 700; }.jobs-section-heading small { font-size: 9px; }
+.job-board-card { display: grid; grid-template-columns: minmax(0, 1.45fr) minmax(290px, .8fr); gap: 20px; margin-bottom: 9px; padding: 17px; border: 1px solid #dfe8ed; border-left: 3px solid #238ac0; border-radius: 9px; background: #fff; box-shadow: 0 2px 8px rgba(25,57,75,.035); }.job-board-card.delayed { border-left-color: #cf6b4f; }.job-board-card.completed, .job-board-card.closed { border-left-color: #52a273; opacity: .92; }.job-card-identity, .job-route, .job-current-stage, .job-card-actions, .job-card-meta, .job-live-item { display: flex; align-items: center; }.job-card-identity { justify-content: space-between; }.job-card-kicker { color: #6d8791; font-size: 9px; font-weight: 800; letter-spacing: .08em; }.job-card-identity h3 { margin: 5px 0 0; color: #263f4c; font-size: 16px; }.job-status { display: inline-flex; align-items: center; gap: 5px; padding: 5px 8px; border-radius: 12px; font-size: 9px; font-weight: 800; }.job-status i { width: 5px; height: 5px; border-radius: 50%; background: currentColor; }.job-status.active { color: #287fa4; background: #e7f5fa; }.job-status.delayed { color: #b45449; background: #fff0ed; }.job-status.completed, .job-status.closed { color: #34845e; background: #eaf7ef; }
+.job-route { gap: 14px; margin: 17px 0 14px; }.job-route > div { min-width: 0; flex: 1; }.job-route small, .job-current-stage small, .job-live-item small, .job-card-meta small { display: block; color: #91a1a8; font-size: 8px; font-weight: 800; letter-spacing: .08em; }.job-route strong { display: block; overflow: hidden; margin-top: 4px; color: #3d5864; font-size: 11px; text-overflow: ellipsis; white-space: nowrap; }.job-route > svg { color: #96abb4; }.job-stage-tracker { display: flex; align-items: flex-start; gap: 0; width: 100%; }.job-stage-step { position: relative; z-index: 1; display: flex; align-items: center; gap: 5px; min-width: 0; flex: 1; }.job-stage-step small { max-width: 95px; color: #81949d; font-size: 8px; line-height: 1.25; }.job-stage-icon { width: 22px; height: 22px; display: grid; flex: 0 0 auto; place-items: center; border: 1px solid #b7c7ce; border-radius: 50%; color: #9aa9ae; background: #fff; }.job-stage-icon.check { border-color: #4ba673; color: #fff; background: #4ba673; }.job-stage-icon.truck { border-color: #258bc2; color: #fff; background: #258bc2; }.job-stage-icon.warning { border-color: #d28a3d; color: #fff; background: #d28a3d; }.job-stage-step i { height: 1px; flex: 1; margin: 0 4px; background: #d7e1e5; }.job-stage-step i.complete { background: #4ba673; }.job-stage-step i.current { background: #258bc2; }.job-stage-step i.pending { border-top: 1px dashed #c8d4d9; background: transparent; }.job-current-stage { justify-content: space-between; gap: 15px; margin-top: 16px; padding-top: 12px; border-top: 1px solid #edf1f3; }.job-current-stage strong { display: block; margin-top: 4px; color: #3b5661; font-size: 11px; }.job-progress-value { width: 160px; }.job-progress-value > strong { display: block; margin: 0 0 5px; text-align: right; color: #2584b2; font-size: 12px; }.job-progress-value > span { display: block; height: 5px; overflow: hidden; border-radius: 4px; background: #e7eef1; }.job-progress-value i { display: block; height: 100%; border-radius: inherit; background: #258bc2; }
+.job-card-side { display: flex; flex-direction: column; justify-content: space-between; gap: 12px; padding-left: 17px; border-left: 1px solid #edf1f3; }.job-live-item { align-items: flex-start; gap: 8px; color: #2486ad; }.job-live-item > span { min-width: 0; }.job-live-item strong, .job-live-item em { display: block; margin-top: 4px; overflow: hidden; color: #4a6570; font-size: 11px; font-style: normal; text-overflow: ellipsis; white-space: nowrap; }.job-live-item em { color: #92a2a9; font-size: 9px; }.job-card-meta { gap: 18px; padding-top: 10px; border-top: 1px solid #edf1f3; }.job-card-meta > span { min-width: 0; flex: 1; }.job-card-meta strong { display: block; overflow: hidden; margin-top: 4px; color: #4a6570; font-size: 10px; text-overflow: ellipsis; white-space: nowrap; }.job-card-actions { gap: 7px; }.job-card-actions button { height: 29px; display: inline-flex; align-items: center; gap: 5px; padding: 0 9px; border: 1px solid #cfe0e6; border-radius: 4px; color: #277c9e; background: #fff; font-size: 9px; font-weight: 700; }.job-card-actions button:hover { background: #eff8fb; }.job-card-actions .job-more { width: 29px; justify-content: center; margin-left: auto; padding: 0; border: 0; color: #8599a2; }.job-expanded-details { grid-column: 1 / -1; display: grid; grid-template-columns: 1fr 2fr auto; gap: 18px; padding-top: 15px; border-top: 1px solid #e8eef1; }.job-detail-summary { display: grid; align-content: start; gap: 7px; color: #78909a; font-size: 10px; }.job-detail-summary strong { color: #3b5661; font-size: 10px; }.job-detail-summary b { margin: 0 5px; }.job-detail-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; }.job-detail-grid span { color: #91a1a8; font-size: 9px; }.job-detail-grid strong { display: block; margin-top: 4px; color: #48626d; font-size: 10px; }.job-status-editor { display: grid; gap: 6px; color: #81959e; font-size: 9px; }.job-status-editor select { height: 30px; padding: 0 7px; border: 1px solid #d3e0e5; border-radius: 4px; color: #526b75; background: #fff; font-size: 10px; }
+.jobs-enterprise-table { margin-top: 22px; }.jobs-enterprise-table .job-stage-tracker { min-width: 300px; }.jobs-enterprise-table td button { padding: 6px 9px; border: 1px solid #cfe0e6; border-radius: 4px; color: #277c9e; background: #fff; font-size: 9px; }
+.jobs-map-handoff { display: grid; justify-items: center; gap: 10px; margin-top: 22px; padding: 80px 20px; border: 1px solid #dfe8ed; border-radius: 9px; color: #7d949d; background: #fff; text-align: center; }.jobs-map-handoff svg { color: #2788af; }.jobs-map-handoff h2 { margin: 0; color: #3b5661; font-size: 18px; }.jobs-map-handoff p { margin: 0; font-size: 11px; }.jobs-map-handoff button { display: inline-flex; align-items: center; gap: 6px; margin-top: 5px; padding: 8px 12px; border: 0; border-radius: 4px; color: #fff; background: #087bc7; font-size: 10px; font-weight: 700; }
+@media (max-width: 900px) { .jobs-view-switcher { margin-top: 18px; justify-content: flex-start; }.jobs-filter-bar { flex-wrap: wrap; }.jobs-summary-cards { grid-template-columns: repeat(3, 1fr); }.job-board-card { grid-template-columns: 1fr; }.job-card-side { padding-top: 14px; padding-left: 0; border-top: 1px solid #edf1f3; border-left: 0; }.job-expanded-details { grid-template-columns: 1fr; }.job-detail-grid { grid-template-columns: repeat(2, 1fr); } }
+@media (max-width: 560px) { .jobs-enterprise-page { padding-top: 18px; }.jobs-enterprise-header { align-items: flex-start; flex-direction: column; }.jobs-enterprise-header > button { align-self: stretch; justify-content: center; }.jobs-view-switcher, .jobs-enterprise-search, .jobs-filter-bar, .jobs-summary-cards, .jobs-board, .jobs-enterprise-table, .jobs-map-handoff { width: calc(100% - 20px); }.jobs-filter-bar label { flex: 1 1 44%; }.jobs-filter-bar > button { margin-left: 0; }.jobs-summary-cards { grid-template-columns: repeat(2, 1fr); }.job-stage-tracker { min-width: 510px; }.job-card-main { overflow-x: auto; }.job-current-stage { min-width: 500px; }.job-card-side { gap: 14px; } }
 @media (max-width: 720px) {
   .trips-page, .create-trip-page { padding: 7px 0 30px; }
   .trips-page-header, .create-trip-heading { align-items: flex-start; flex-direction: column; gap: 14px; margin-bottom: 15px; }
@@ -1218,3 +1284,260 @@ h1 { font-size: 21px; line-height: 1.2; margin: 6px 0 0; font-weight: 700; lette
 .enquiry-list { padding: 14px 18px 18px; }
 .enquiry-card { min-width: 0; }
 @media (max-width: 720px) { .enquiries-list-heading { align-items: flex-start; padding: 14px; }.enquiries-list-heading span { max-width: 260px; }.enquiries-list-card .trips-toolbar { padding: 10px 14px; }.enquiry-list { padding: 10px 14px 14px; } }
+
+.tyre-management-page { width: 100%; min-width: 0; min-height: 0; overflow-y: auto; padding: 23px 3px 42px; color: #263640; }
+.tyre-page-header { display: flex; align-items: center; justify-content: space-between; gap: 24px; margin: 0 1px 26px; }
+.tyre-page-title { display: flex; align-items: center; gap: 12px; }
+.tyre-page-title h1 { margin: 0; color: #17232b; font-size: 25px; letter-spacing: -.035em; }
+.tyre-page-icon { display: inline-flex; color: #111; }
+.tyre-toolbar { display: flex; align-items: center; gap: 8px; }
+.tyre-period-menu-wrap, .tyre-add-menu-wrap { position: relative; }
+.tyre-control { height: 40px; display: flex; align-items: center; gap: 8px; padding: 0 10px; border: 1px solid #d6dde1; border-radius: 5px; color: #62717a; background: #fff; }
+.tyre-control select { min-width: 154px; border: 0; outline: 0; color: #5d6b73; background: transparent; font-size: 12px; appearance: none; }
+.tyre-control svg:last-child { color: #a1adb3; pointer-events: none; }
+.tyre-vehicle-control svg:first-child { display: none; }
+.tyre-period-control { min-width: 174px; justify-content: space-between; cursor: pointer; font-size: 12px; }
+.tyre-period-control span { flex: 1; color: #334853; font-weight: 600; text-align: left; }
+.tyre-add-button { width: 41px; height: 40px; display: grid; place-items: center; border: 1px solid #d6dde1; border-radius: 5px; color: #172a34; background: #fff; }
+.tyre-add-button:hover { color: #087bc2; background: #f2f9fc; }
+.tyre-report-menu-wrap { position: relative; }
+.tyre-report-button { height: 40px; display: inline-flex; align-items: center; gap: 8px; padding: 0 13px; border: 0; border-radius: 5px; color: #fff; background: #087bc7; font-size: 12px; font-weight: 700; }
+.tyre-report-button:hover { background: #066bab; }
+.tyre-report-menu { position: absolute; z-index: 20; top: calc(100% + 5px); right: 0; width: 160px; padding: 5px; border: 1px solid #dce5e9; border-radius: 5px; background: #fff; box-shadow: 0 8px 18px rgba(25,55,70,.16); }
+.tyre-report-menu button { width: 100%; padding: 9px 8px; border: 0; border-radius: 3px; color: #4f626c; background: transparent; text-align: left; font-size: 11px; }
+.tyre-report-menu button:hover { color: #087bc7; background: #eef8fc; }
+.tyre-add-menu, .tyre-period-menu { position: absolute; z-index: 40; top: calc(100% + 5px); right: 0; width: 240px; padding: 8px 0; border: 1px solid #cbd8de; background: #fff; box-shadow: 0 8px 18px rgba(25,55,70,.14); }
+.tyre-add-menu button { width: 100%; min-height: 51px; display: flex; align-items: center; gap: 11px; padding: 8px 12px; border: 0; color: #26333a; background: #fff; text-align: left; font-size: 16px; }
+.tyre-add-menu button:hover, .tyre-period-menu button:hover { background: #f1f7f9; }
+.tyre-add-menu button svg { flex: 0 0 auto; color: #111; }
+.tyre-add-menu button span { display: grid; gap: 2px; }
+.tyre-add-menu button small { color: #26333a; font-size: 15px; }
+.tyre-period-menu { width: 218px; padding: 6px; }
+.tyre-period-menu > button { width: 100%; height: 34px; padding: 0 9px; border: 0; color: #42545d; background: #fff; text-align: left; font-size: 11px; }
+.tyre-calendar-field { display: grid; gap: 5px; margin: 7px 3px 2px; padding: 8px 7px 2px; border-top: 1px solid #e4ecef; color: #788991; font-size: 10px; }
+.tyre-calendar-field input { width: 100%; height: 32px; padding: 0 7px; border: 1px solid #d6e0e4; border-radius: 4px; outline: 0; color: #42545d; background: #fff; font-size: 10px; }
+.tyre-view-tabs { display: grid; grid-template-columns: repeat(3, 1fr); min-height: 41px; border: 1px solid #d7dfe3; border-radius: 4px; background: #fff; }
+.tyre-view-tabs button { border: 0; color: #087bc7; background: transparent; font-size: 13px; }
+.tyre-view-tabs button + button { border-left: 1px solid #e0e6e9; }
+.tyre-view-tabs button.active { color: #fff; background: #087bc7; }
+.tyre-content-card { margin-top: 25px; padding: 21px 22px 25px; border: 1px solid #d9e0e3; background: #fff; }
+.tyre-summary-tabs { display: inline-flex; min-height: 40px; border: 1px solid #d6dfe3; border-radius: 4px; overflow: hidden; }
+.tyre-summary-tabs button { min-width: 116px; padding: 0 16px; border: 0; border-right: 1px solid #d6dfe3; color: #087bc7; background: #fff; font-size: 12px; }
+.tyre-summary-tabs button:last-child { border-right: 0; }
+.tyre-summary-tabs button.active { color: #fff; background: #087bc7; }
+.tyre-summary-grid { display: grid; grid-template-columns: repeat(4, minmax(130px, 1fr)); gap: 25px 56px; padding: 25px 32px 0; }
+.tyre-summary-metric { display: flex; align-items: center; gap: 8px; min-width: 0; padding: 0; border: 0; color: inherit; background: transparent; text-align: left; }
+.tyre-summary-metric.clickable { cursor: pointer; }
+.tyre-summary-metric.clickable:hover strong { color: #087bc7; }
+.tyre-summary-metric strong { color: #15242c; font-size: 18px; }
+.tyre-summary-metric strong.profit { color: #25943a; }
+.tyre-summary-metric strong.loss { color: #fa1111; }
+.tyre-summary-metric span { display: inline-flex; align-items: center; gap: 5px; color: #273942; font-size: 12px; white-space: nowrap; }
+.tyre-info-mark { width: 14px; height: 14px; display: inline-grid; place-items: center; border: 1px solid #2189e2; border-radius: 50%; color: #2189e2; font-size: 9px; font-weight: 700; }
+.tyre-tab-placeholder { min-height: 110px; display: flex; align-items: center; justify-content: center; gap: 10px; color: #7f9098; font-size: 12px; }
+.tyre-brand-summary { min-height: 176px; padding: 29px 38px 14px; }
+.tyre-brand-summary h3 { margin: 0 0 28px; color: #111f27; font-size: 20px; font-weight: 500; }
+.tyre-brand-grid { display: grid; grid-template-columns: repeat(4, minmax(120px, 1fr)); gap: 28px 52px; }
+.tyre-brand-metric { display: flex; align-items: baseline; gap: 9px; min-width: 0; }
+.tyre-brand-metric strong { color: #14232b; font-size: 23px; letter-spacing: -.03em; }
+.tyre-brand-metric span { color: #4d6b79; font-size: 16px; }
+.tyre-size-summary { min-height: 247px; padding: 29px 38px 0; }
+.tyre-size-summary h3 { margin: 0 0 28px; color: #111f27; font-size: 20px; font-weight: 500; }
+.tyre-size-grid { display: grid; grid-template-columns: repeat(4, minmax(120px, 1fr)); gap: 28px 52px; }
+.tyre-size-metric { display: flex; align-items: baseline; gap: 9px; min-width: 0; }
+.tyre-size-metric strong { color: #14232b; font-size: 23px; letter-spacing: -.03em; }
+.tyre-size-metric span { color: #4d6b79; font-size: 16px; }
+.tyre-size-summary-footer { display: flex; align-items: center; gap: 8px; width: 422px; max-width: 100%; margin: 25px 0 0 -20px; padding: 0 18px; background: #f5f5f5; }
+.tyre-size-summary-footer button { display: inline-flex; align-items: center; gap: 7px; min-height: 34px; padding: 0; border: 0; color: #4d6b79; background: transparent; font-size: 15px; }
+.tyre-size-summary-footer button:last-child { margin-left: auto; color: #111; }
+.tyre-size-summary-footer button:hover { color: #087bc7; }
+.tyre-amount-summary { min-height: 201px; padding: 29px 34px 14px; }
+.tyre-amount-summary h3 { margin: 0 0 29px; color: #111f27; font-size: 20px; font-weight: 500; }
+.tyre-amount-grid { display: grid; grid-template-columns: repeat(4, minmax(180px, 1fr)); gap: 34px; }
+.tyre-amount-metric { display: flex; align-items: center; gap: 20px; min-width: 0; }
+.tyre-amount-metric strong { max-width: 150px; color: #14232b; font-size: 23px; line-height: 1.35; letter-spacing: -.03em; }
+.tyre-amount-metric span { color: #4d6b79; font-size: 16px; line-height: 1.5; }
+.tyre-tab-placeholder strong { color: #344b57; }
+.tyre-inventory-section { margin-top: 16px; padding: 24px 17px 0; border: 1px solid #d9e0e3; background: #fff; }
+.tyre-inventory-heading { display: flex; align-items: center; justify-content: space-between; gap: 18px; margin: 0 7px 17px; }
+.tyre-inventory-heading h2 { margin: 0; color: #111f27; font-size: 23px; letter-spacing: -.035em; }
+.tyre-search { width: 210px; height: 34px; display: flex; align-items: center; gap: 7px; padding: 0 9px; border: 1px solid #d7e0e4; border-radius: 4px; color: #81919a; }
+.tyre-search input { min-width: 0; flex: 1; border: 0; outline: 0; color: #435862; background: transparent; font-size: 11px; }
+.tyre-search button { display: grid; place-items: center; padding: 2px; border: 0; color: #87969d; background: transparent; }
+.tyre-customise-button, .tyre-filter-button { height: 34px; display: inline-flex; align-items: center; gap: 6px; padding: 0 11px; border: 1px solid #d6e0e4; border-radius: 5px; color: #415761; background: #fff; font-size: 11px; font-weight: 600; }
+.tyre-customise-button { margin-left: auto; }
+.tyre-customise-button:hover, .tyre-filter-button:hover { color: #087bc7; background: #f2f9fc; }
+.tyre-table-wrap { overflow-x: auto; }
+.tyre-table { width: 100%; min-width: 930px; border-collapse: collapse; }
+.tyre-table th { height: 52px; padding: 0 16px; color: #263943; background: #fbfcfd; font-size: 11px; font-weight: 700; text-align: left; white-space: nowrap; }
+.tyre-table td { height: 62px; padding: 9px 16px; border-top: 1px solid #edf1f3; color: #425761; font-size: 11px; white-space: nowrap; }
+.tyre-table td strong, .tyre-table td small { display: block; }
+.tyre-table td strong { color: #263b46; font-size: 11px; }
+.tyre-table td small { margin-top: 4px; color: #8999a1; font-size: 9px; }
+.tyre-detail-close { display: inline-flex; align-items: center; gap: 5px; margin-right: auto; padding: 5px 8px; border: 1px solid #d5e1e5; border-radius: 4px; color: #66808b; background: #fff; font-size: 10px; }
+.tyre-detail-close:hover { color: #087bc7; background: #f2f9fc; }
+.tyre-detail-table { min-width: 2550px; }
+.tyre-detail-table td { height: 58px; }
+.tyre-detail-table td:nth-child(4) { min-width: 180px; white-space: normal; }
+.tyre-profit { font-weight: 700; }
+.tyre-profit.profit { color: #238b54; }
+.tyre-profit.loss { color: #d2544c; }
+.tyre-row-action { padding: 5px 8px; border: 1px solid #d5e1e5; border-radius: 4px; color: #66808b; background: #fff; font-size: 9px; }
+.tyre-row-action:hover { color: #087bc7; background: #f2f9fc; }
+.tyre-row-actions { display: inline-flex; align-items: center; gap: 8px; }
+.tyre-icon-action { width: 20px; height: 20px; display: grid; place-items: center; padding: 0; border: 0; color: #111; background: transparent; }
+.tyre-icon-action svg { width: 13px; height: 13px; }
+.tyre-icon-action:hover { color: #444; }
+.tyre-icon-action.tread-action { border: 1px solid #111; border-radius: 50%; }
+.tyre-icon-action.tread-action:hover { color: #fff; background: #111; }
+.tread-modal-backdrop { position: fixed; z-index: 120; inset: 0; display: grid; place-items: center; padding: 8px; background: rgba(27, 35, 40, .56); }
+.tread-modal { width: min(100%, 624px); overflow: hidden; border: 1px solid #b9c8d1; background: #fff; box-shadow: 0 16px 38px rgba(17, 38, 50, .28); }
+.tread-modal-header { display: flex; align-items: center; justify-content: space-between; min-height: 76px; padding: 0 19px; border-bottom: 1px solid #c9d8df; }
+.tread-modal-header h2 { margin: 0; color: #111; font-size: 24px; font-weight: 500; }
+.tread-modal-header button { width: 28px; height: 28px; display: grid; place-items: center; border: 0; color: #758790; background: transparent; }
+.tread-modal-body { display: grid; gap: 20px; padding: 20px 19px 25px; }
+.tread-modal-field { display: grid; gap: 12px; color: #17242b; font-size: 18px; }
+.tread-modal-field > span:first-child b { color: #d71920; }
+.tread-modal-field > input { width: 100%; height: 44px; padding: 0 10px; border: 1px solid #c4d3da; border-radius: 5px; outline: 0; color: #263d49; background: #fff; font-size: 16px; }
+.tread-modal-field > input:focus, .tread-date-input:focus-within { border-color: #087bc7; box-shadow: 0 0 0 2px rgba(8,123,199,.12); }
+.tread-date-input { width: 398px; max-width: 100%; height: 48px; display: flex; align-items: center; gap: 8px; margin-left: 188px; padding: 0 12px; border: 1px solid #c4d3da; border-radius: 5px; color: #5d6f79; }
+.tread-date-input input { min-width: 0; flex: 1; border: 0; outline: 0; color: #3d505a; background: transparent; font-size: 16px; }
+.tread-date-input button { display: grid; place-items: center; padding: 2px; border: 0; color: #a3afb5; background: transparent; }
+.tread-modal-footer { display: flex; justify-content: flex-end; gap: 10px; padding: 16px 18px; border-top: 1px solid #c9d8df; }
+.tread-submit, .tread-cancel { height: 44px; padding: 0 16px; border-radius: 5px; font-size: 16px; }
+.tread-submit { border: 1px solid #087bc7; color: #fff; background: #087bc7; font-weight: 700; }
+.tread-submit:hover { background: #066bab; }
+.tread-cancel { border: 1px solid #c4d0d6; color: #253943; background: #fff; }
+.tread-cancel:hover { background: #f3f7f9; }
+@media (max-width: 620px) { .tread-date-input { margin-left: 0; } .tread-modal-header h2 { font-size: 20px; } .tread-modal-field { font-size: 15px; } }
+.tyre-form-backdrop { position: fixed; z-index: 100; inset: 0; display: grid; place-items: center; padding: 20px; background: rgba(17, 34, 43, .48); backdrop-filter: blur(3px); }
+.tyre-form-modal { width: min(100%, 850px); max-height: min(92vh, 850px); display: grid; grid-template-rows: auto minmax(0, 1fr) auto; overflow: hidden; border: 1px solid #d8e2e6; border-radius: 8px; background: #fff; box-shadow: 0 20px 55px rgba(24, 47, 59, .25); }
+.tyre-form-header { display: flex; align-items: flex-start; justify-content: space-between; gap: 15px; padding: 18px 22px 15px; border-bottom: 1px solid #e6edef; }
+.tyre-form-header > div > span { color: #2181ad; font-size: 9px; font-weight: 800; letter-spacing: .1em; }
+.tyre-form-header h2 { margin: 5px 0 0; color: #263b46; font-size: 20px; }
+.tyre-form-close { width: 30px; height: 30px; display: grid; place-items: center; border: 0; border-radius: 4px; color: #71848d; background: transparent; }
+.tyre-form-close:hover { color: #176b9b; background: #eef8fb; }
+.tyre-form-body { overflow-y: auto; padding: 18px 22px 20px; }
+.tyre-form-section + .tyre-form-section { margin-top: 22px; padding-top: 18px; border-top: 1px solid #e8eef0; }
+.tyre-form-section h3 { margin: 0 0 14px; color: #38515d; font-size: 13px; }
+.tyre-form-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 14px 16px; }
+.tyre-form-field { min-width: 0; display: grid; align-content: start; gap: 6px; color: #526873; font-size: 10px; font-weight: 700; }
+.tyre-form-field span b { margin-left: 3px; color: #d5574e; }
+.tyre-form-field input, .tyre-form-field select { width: 100%; height: 36px; min-width: 0; padding: 0 9px; border: 1px solid #d5e1e5; border-radius: 4px; outline: 0; color: #344e5a; background: #fcfdfd; font-size: 11px; font-weight: 400; }
+.tyre-form-field input[type="file"] { height: auto; padding: 9px; }
+.tyre-form-field input:focus, .tyre-form-field select:focus { border-color: #5aaac8; box-shadow: 0 0 0 2px rgba(50, 145, 184, .1); }
+.tyre-form-field a { color: #167ca8; font-size: 9px; font-weight: 600; text-decoration: underline; }
+.tyre-form-footer { display: flex; justify-content: flex-end; gap: 8px; padding: 12px 22px; border-top: 1px solid #e6edef; background: #fbfcfd; }
+.tyre-form-cancel, .tyre-form-save { height: 36px; padding: 0 15px; border-radius: 4px; font-size: 11px; font-weight: 700; }
+.tyre-form-cancel { border: 1px solid #d5e1e5; color: #647984; background: #fff; }
+.tyre-form-cancel:hover { background: #f3f8fa; }
+.tyre-form-save { border: 1px solid #087bc7; color: #fff; background: #087bc7; }
+.tyre-form-save:hover { background: #066bab; }
+@media (max-width: 700px) {
+  .tyre-form-backdrop { padding: 0; }
+  .tyre-form-modal { width: 100%; height: 100%; max-height: 100%; border-radius: 0; }
+  .tyre-form-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+@media (max-width: 430px) { .tyre-form-grid { grid-template-columns: 1fr; } }
+.tyre-condition { padding: 4px 8px; border-radius: 10px; color: #2d8850; background: #eaf7ee; font-size: 9px; font-weight: 700; }
+.tyre-condition.review { color: #9d721c; background: #fff6d9; }
+.tyre-empty { height: 170px !important; color: #87979e !important; text-align: center; }
+.columns-modal-backdrop { position: fixed; z-index: 130; inset: 0; display: grid; place-items: center; padding: 8px; background: rgba(27, 35, 40, .56); }
+.columns-modal { width: min(100%, 745px); max-height: 96vh; display: grid; grid-template-rows: auto minmax(0, 1fr) auto; overflow: hidden; border-top: 2px solid #123b59; background: #fff; box-shadow: 0 18px 44px rgba(17, 38, 50, .28); }
+.columns-modal-header { display: flex; align-items: center; justify-content: space-between; padding: 20px 18px; border-bottom: 1px solid #cbd8df; }
+.columns-modal-header h2 { margin: 0; color: #111; font-size: 24px; font-weight: 500; }
+.columns-modal-header button { display: grid; place-items: center; padding: 0; border: 0; color: #777; background: transparent; }
+.columns-modal-body { min-height: 0; overflow-y: auto; padding: 29px 28px 28px; }
+.columns-selected-count { display: block; color: #111; font-size: 20px; }
+.columns-modal-body > p { max-width: 650px; margin: 12px 0 25px; color: #111; font-size: 17px; line-height: 1.55; }
+.columns-modal-headings { display: grid; grid-template-columns: 1fr 1fr; gap: 56px; padding: 0 19px 20px; color: #111; font-size: 17px; }
+.columns-modal-headings div { display: grid; gap: 5px; }
+.columns-modal-headings span { color: #607985; font-weight: 400; }
+.columns-modal-lists { display: grid; grid-template-columns: 1fr 1fr; gap: 56px; min-height: 350px; }
+.columns-selected-list, .columns-unselected-list { min-height: 0; max-height: 405px; overflow-y: auto; padding: 0 0 5px; scrollbar-color: #8a8f92 #f2f2f2; scrollbar-width: auto; }
+.column-option { min-height: 60px; display: flex; align-items: center; gap: 14px; margin-bottom: 10px; padding: 0 14px; border: 1px solid #e0e0e0; border-radius: 10px; color: #111; background: #fff; font-size: 16px; }
+.column-option input { width: 16px; height: 16px; flex: 0 0 auto; accent-color: #087bc7; }
+.column-option span { flex: 1; min-width: 0; }
+.columns-selected-list .column-option { cursor: grab; }
+.columns-selected-list .column-option:active { cursor: grabbing; opacity: .7; }
+.columns-selected-list .column-option svg { color: #111; }
+.columns-all-selected { display: block; padding-top: 9px; color: #111; font-size: 16px; }
+.columns-modal-footer { display: flex; justify-content: flex-end; gap: 15px; padding: 19px 17px 14px; border-top: 1px solid #cbd8df; }
+.columns-apply, .columns-close { height: 41px; padding: 0 20px; border-radius: 5px; font-size: 16px; }
+.columns-apply { border: 1px solid #087bc7; color: #fff; background: #087bc7; }
+.columns-close { border: 1px solid #ccd5da; color: #111; background: #fff; }
+.columns-apply:hover { background: #066bab; }
+.columns-close:hover { background: #f4f7f8; }
+.inward-modal-backdrop { position: fixed; z-index: 140; inset: 0; display: grid; place-items: center; padding: 8px; background: rgba(27, 35, 40, .52); }
+.inward-modal { width: min(100%, 1680px); max-height: 96vh; display: grid; grid-template-rows: minmax(0, 1fr) auto; overflow: hidden; border: 1px solid #d9e3e8; border-radius: 4px; background: #fff; box-shadow: 0 18px 44px rgba(17, 38, 50, .24); }
+.inward-modal-scroll { min-height: 0; overflow-y: auto; padding: 26px 30px 24px; }
+.inward-heading { display: flex; align-items: center; justify-content: space-between; padding: 0 0 18px; border-bottom: 1px solid #dfe7eb; }
+.inward-heading h2 { margin: 0; color: #111; font-size: 28px; font-weight: 500; }
+.inward-heading button, .inward-tyre-card-heading button { display: grid; place-items: center; padding: 0; border: 0; color: #111; background: transparent; }
+.inward-section { padding: 24px 0 28px; border-bottom: 1px solid #e1e8eb; }
+.inward-header-grid { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 27px 36px; }
+.inward-field { display: grid; align-content: start; gap: 9px; min-width: 0; color: #18262d; font-size: 16px; }
+.inward-field span b { margin-left: 3px; color: #d71920; }
+.inward-field input, .inward-field select { width: 100%; height: 44px; min-width: 0; padding: 0 12px; border: 1px solid #cbd8df; border-radius: 4px; outline: 0; color: #536d7b; background: #fff; font-size: 15px; }
+.inward-field input:focus, .inward-field select:focus { border-color: #1591e4; box-shadow: 0 0 0 2px rgba(21,145,228,.12); }
+.inward-tyre-card { margin-top: 20px; padding: 27px 36px 30px; border: 1px solid #dfe7eb; background: #f4f7f8; }
+.inward-tyre-card-heading { display: flex; align-items: center; justify-content: space-between; margin-bottom: 25px; color: #17272f; font-size: 20px; }
+.inward-tyre-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 24px 28px; }
+.inward-upload-section { padding: 25px 0 30px; }
+.inward-upload-section h3 { margin: 0 0 15px; padding-bottom: 14px; border-bottom: 1px solid #dfe7eb; color: #111; font-size: 18px; font-weight: 500; }
+.inward-upload-label { display: flex; align-items: center; justify-content: center; gap: 8px; min-height: 58px; color: #087bc7; font-size: 16px; cursor: pointer; }
+.inward-upload-label input { position: absolute; width: 1px; height: 1px; opacity: 0; }
+.inward-add-more { display: flex; align-items: center; gap: 9px; margin: 0 auto; padding: 10px 15px; border: 1px solid #087bc7; border-radius: 5px; color: #fff; background: #087bc7; font-size: 15px; font-weight: 700; }
+.inward-add-more:hover, .inward-submit:hover { background: #066bab; }
+.inward-footer { display: flex; justify-content: flex-end; gap: 10px; padding: 18px 20px; border-top: 1px solid #dfe7eb; background: #fff; }
+.inward-cancel, .inward-submit { height: 44px; padding: 0 17px; border-radius: 5px; font-size: 16px; }
+.inward-cancel { border: 1px solid #cbd8df; color: #263943; background: #fff; }
+.inward-submit { border: 1px solid #087bc7; color: #fff; background: #087bc7; font-weight: 700; }
+@media (max-width: 900px) { .inward-header-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }.inward-tyre-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+@media (max-width: 560px) { .inward-modal-scroll { padding: 18px 15px; }.inward-header-grid, .inward-tyre-grid { grid-template-columns: 1fr; gap: 17px; }.inward-tyre-card { padding: 19px 14px; }.inward-heading h2 { font-size: 23px; } }
+@media (max-width: 900px) {
+  .tyre-page-header { align-items: flex-start; flex-direction: column; }
+  .tyre-toolbar { width: 100%; flex-wrap: wrap; }
+  .tyre-control { flex: 1; }
+  .tyre-control select { min-width: 0; width: 100%; }
+  .tyre-report-menu-wrap { margin-left: auto; }
+  .tyre-summary-grid { grid-template-columns: repeat(2, minmax(130px, 1fr)); padding-right: 10px; padding-left: 10px; }
+  .tyre-brand-grid { grid-template-columns: repeat(2, minmax(120px, 1fr)); }
+  .tyre-size-grid { grid-template-columns: repeat(2, minmax(120px, 1fr)); }
+  .tyre-amount-grid { grid-template-columns: repeat(2, minmax(180px, 1fr)); }
+}
+@media (max-width: 560px) {
+  .tyre-management-page { padding: 15px 0 30px; }
+  .tyre-page-title h1 { font-size: 21px; }
+  .tyre-toolbar { gap: 6px; }
+  .tyre-control { min-width: 0; }
+  .tyre-vehicle-control { flex-basis: 100%; }
+  .tyre-period-control { flex-basis: calc(100% - 95px); }
+  .tyre-report-button { padding: 0 9px; }
+  .tyre-period-menu { right: auto; left: 0; }
+  .tyre-add-menu { right: auto; left: 0; }
+  .tyre-content-card { padding: 14px 10px 18px; overflow-x: auto; }
+  .tyre-summary-tabs { width: max-content; }
+  .tyre-summary-grid { min-width: 480px; gap: 20px; }
+  .tyre-brand-summary { padding: 24px 10px 14px; }
+  .tyre-brand-grid { gap: 20px 14px; }
+  .tyre-brand-metric strong { font-size: 19px; }
+  .tyre-brand-metric span { font-size: 13px; }
+  .tyre-size-summary { padding: 24px 10px 0; }
+  .tyre-size-grid { gap: 20px 14px; }
+  .tyre-size-metric strong { font-size: 19px; }
+  .tyre-size-metric span { font-size: 13px; }
+  .tyre-size-summary-footer { margin-left: 0; }
+  .tyre-amount-summary { padding: 24px 10px 14px; }
+  .tyre-amount-grid { gap: 22px 14px; }
+  .tyre-amount-metric { align-items: flex-start; gap: 10px; }
+  .tyre-amount-metric strong { font-size: 19px; }
+  .tyre-amount-metric span { font-size: 13px; }
+  .tyre-inventory-section { padding-right: 8px; padding-left: 8px; }
+  .tyre-inventory-heading { align-items: stretch; flex-direction: column; margin-right: 0; margin-left: 0; }
+  .tyre-search { width: 100%; }
+  .tyre-customise-button { margin-left: 0; }
+  .columns-modal-headings, .columns-modal-lists { grid-template-columns: 1fr; gap: 12px; }
+  .columns-modal-headings > strong { display: none; }
+  .columns-modal-body { padding: 22px 16px; }
+}
