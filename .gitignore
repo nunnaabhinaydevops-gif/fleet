@@ -27,3 +27,5 @@ dist-ssr
 !.env
 
 firebase/functions/serviceAccountKey.json
+
+.env
