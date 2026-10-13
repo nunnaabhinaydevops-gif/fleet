@@ -1,0 +1,19 @@
+{
+  "name": "Vasudev Fleet",
+  "short_name": "Vasudev Fleet",
+  "description": "Fleet operations and transport services from Vasudev Fleet.",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "background_color": "#f4f7f3",
+  "theme_color": "#166e51",
+  "orientation": "portrait-primary",
+  "icons": [
+    {
+      "src": "/vasudev-fleet-icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ]
+}
